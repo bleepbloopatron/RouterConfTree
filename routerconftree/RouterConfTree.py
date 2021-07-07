@@ -14,7 +14,7 @@ def NewConfTree(data):
     elif isinstance(data,str):
         confdata = openfile(data)
 
-    baseconf = routertreeobject.RouterTreeNode('BaseLayer')
+    baseconf = routertreeobject.RouterTreeNode()
     currentnode = baseconf
     currentdepth = 0
     for line in confdata:

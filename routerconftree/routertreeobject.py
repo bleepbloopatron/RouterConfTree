@@ -1,10 +1,13 @@
 import re
 
 class RouterTreeNode(object):
-    def __init__(self, text):
+    def __init__(self, text= None):
         self.children = []
         self.parent = None
-        self.text = text
+        if text == None:
+            self.text = 'Root Node'
+        else:
+            self.text = text
     
     def AppendChild(self, child):
         if isinstance(child, RouterTreeNode):
@@ -13,6 +16,19 @@ class RouterTreeNode(object):
             newchild = RouterTreeNode(child)
         self.children.append(newchild)
         newchild.SetParent(self)
+
+    def RemoveChild(self, child):
+        if isinstance(child, RouterTreeNode):
+            if child in self.children:
+                self.children.remove(child)
+                child.RemoveParent()
+        elif isinstance(child, str):
+            for entry in self.ChildrenWith(child):
+                self.children.remove(entry)
+                entry.RemoveParent()
+
+    def RemoveParent(self):
+        self.parent = None
 
     def SetParent(self, parent):
         self.parent = parent
@@ -26,8 +42,11 @@ class RouterTreeNode(object):
         return output
     
     def Print(self):
-        # don't print current node, but print all parts. 
-        return self.PrintTree(-1, False)
+        if self.isRoot():
+            # don't print current node, but print all parts. 
+            return self.PrintTree(-1, False)
+        else:
+            return self.PrintTree()
 
     def SearchSelf(self, searchstring):
         if re.search(searchstring, self.text):
@@ -49,10 +68,40 @@ class RouterTreeNode(object):
         else:
             return self
 
+    def isRoot(self):
+        if self.text == "Root Node":
+            return True
+
+    def GetAllChildren(self):
+        return self.children
+
+    def __add__(self, target):
+        if isinstance(target, RouterTreeNode):
+            if target.isRoot():
+                for child in target.GetAllChildren():
+                    self.AppendChild(child)
+            else:
+                self.AppendChild(target)
+        elif isinstance(target, str):
+            self.AppendChild(target)
+
+    def __sub__(self, target):
+        if isinstance(target, RouterTreeNode):
+            if target.isRoot():
+                for child in target.GetAllChildren():
+                    self.RemoveChild(child)
+            else:
+                self.RemoveChild(target)
+        elif isinstance(target, str):
+            self.RemoveChild(target)
+        
+
+
+
 
 if __name__=='__main__':
     # build a test routerconfig
-    TestRouter = RouterTreeNode('Root Node')
+    TestRouter = RouterTreeNode()
     for interface in range(4):
         intobj = RouterTreeNode('interface ethernet {}'.format(interface + 1))
         intobj.AppendChild(RouterTreeNode('no switchport'))
@@ -69,5 +118,19 @@ if __name__=='__main__':
     print(TestRouter.Print())
 
     print(TestRouter.ChildrenWith('activate', -1)[0].text)
+
+    AddTest = RouterTreeNode('New Tree')
+    AddTest.AppendChild('With branch')
+    TestRouter + AddTest
+    print(TestRouter.Print())
+
+    TestRouter - AddTest
+    TestRouter - 'interface ethernet 3'
+
+    TestRouter + 'no domain lookup'
+
+
+    print(TestRouter.Print())
+
 
 
