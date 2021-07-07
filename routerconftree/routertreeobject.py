@@ -42,6 +42,12 @@ class RouterTreeNode(object):
             if (searchdepth > 0) or (searchdepth <= -1):
                 output += child.ChildrenWith(searchstring, searchdepth-1)
         return output
+    
+    def LastLine(self):
+        if len(self.children) != 0:
+            return self.children[-1].LastLine()
+        else:
+            return self
 
 
 if __name__=='__main__':

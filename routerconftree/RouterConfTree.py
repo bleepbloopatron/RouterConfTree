@@ -19,5 +19,9 @@ def NewConfTree(data):
     currentdepth = 0
     for line in confdata:
         if len(line) - len(line.lstrip(' ')) > currentdepth:
-            currentnode.AppendChild(line)
-            currentnode = currentnode.
+            nextline = routertreeobject.RouterTreeNode(line)
+            currentnode.AppendChild(nextline)
+            currentnode = nextline
+            currentdepth += 1
+        elif len(line) - len(line.lstrip(' ')) == currentdepth:
+            
