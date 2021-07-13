@@ -24,4 +24,19 @@ def NewConfTree(data):
             currentnode = nextline
             currentdepth += 1
         elif len(line) - len(line.lstrip(' ')) == currentdepth:
-            
+            currentnode.AppendChild(line)
+        elif len(line) - len(line.lstrip(' ')) < currentdepth:
+            depthdif = currentdepth - (len(line) - len(line.lstrip(' ')))
+            while depthdif > 0:
+                currentnode = currentnode.GetParent()
+                depthdif -= 1
+                currentdepth -=1 
+            currentnode.AppendChild(line)
+
+    return baseconf
+
+
+if __name__=="__main__":
+    unittest = NewConfTree('testconfig.txt')
+    print(unittest.Print())
+

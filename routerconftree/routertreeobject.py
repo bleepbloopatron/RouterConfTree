@@ -7,7 +7,7 @@ class RouterTreeNode(object):
         if text == None:
             self.text = 'Root Node'
         else:
-            self.text = text
+            self.text = text.lstrip()
     
     def AppendChild(self, child):
         if isinstance(child, RouterTreeNode):
@@ -26,6 +26,12 @@ class RouterTreeNode(object):
             for entry in self.ChildrenWith(child):
                 self.children.remove(entry)
                 entry.RemoveParent()
+
+    def GetParent(self):
+        if self.parent:
+            return self.parent
+        else:
+            return self
 
     def RemoveParent(self):
         self.parent = None

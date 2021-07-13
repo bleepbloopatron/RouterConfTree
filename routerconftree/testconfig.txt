@@ -11,3 +11,8 @@ router bgp 6500
  neighbor 192.168.0.2 remote-as 65001
  address-family ipv4 unicast
   neighbor 192.168.0.2 activate
+ depth testline
+  sub depth 1
+   sub depth 2
+ new thing
+Root thing
