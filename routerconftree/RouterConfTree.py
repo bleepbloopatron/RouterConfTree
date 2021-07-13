@@ -15,28 +15,44 @@ def NewConfTree(data):
         confdata = openfile(data)
 
     baseconf = routertreeobject.RouterTreeNode()
-    currentnode = baseconf
-    currentdepth = 0
-    for line in confdata:
-        if len(line) - len(line.lstrip(' ')) > currentdepth:
-            nextline = routertreeobject.RouterTreeNode(line)
-            currentnode.AppendChild(nextline)
-            currentnode = nextline
-            currentdepth += 1
-        elif len(line) - len(line.lstrip(' ')) == currentdepth:
-            currentnode.AppendChild(line)
-        elif len(line) - len(line.lstrip(' ')) < currentdepth:
-            depthdif = currentdepth - (len(line) - len(line.lstrip(' ')))
-            while depthdif > 0:
-                currentnode = currentnode.GetParent()
-                depthdif -= 1
-                currentdepth -=1 
-            currentnode.AppendChild(line)
+    ConfLineList = list()
+
+    for line in range(len(confdata)):
+        nextline = routertreeobject.RouterTreeNode(confdata[line])
+        # Depth is set to number of spaces prepending the line. 
+        depth = len(confdata[line]) - len(confdata[line].lstrip(' '))
+        # builds a list of RouterTreeNodes to search back through for liniage. 
+        ConfLineList.append((nextline, depth))
+        searchparents = True
+        # Starts the backwards search at the last line.
+        index = -1
+        while searchparents:
+            # Checks last line for liniage depth. 
+            if (line + index) > -1:
+                # Keep checking up stream for liniage.
+                if ConfLineList[line + index][1] > depth:
+                    index -=1
+                # Find next closest sibling, and connect to it's parent.
+                elif ConfLineList[line + index][1] == depth:
+                    ConfLineList[line + index][0].GetParent().AppendChild(nextline)
+                    searchparents = False
+                # Find parent and connect to that. 
+                elif ConfLineList[line + index][1] < depth:
+                    ConfLineList[line + index][0].AppendChild(nextline)
+                    searchparents = False
+            # Fall back for first line
+            else:
+                baseconf.AppendChild(nextline)
+                searchparents = False
+
 
     return baseconf
 
 
 if __name__=="__main__":
     unittest = NewConfTree('testconfig.txt')
+    print(unittest.Print())
+
+    unittest - 'Root thing'
     print(unittest.Print())
 
