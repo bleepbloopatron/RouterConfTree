@@ -5,9 +5,11 @@ class RouterTreeNode(object):
         self.children = []
         self.parent = None
         if text == None:
-            self.text = 'Root Node'
+            self.text = ''
+            self.root = True
         else:
             self.text = text.lstrip()
+            self.root = False
     
     def AppendChild(self, child):
         if isinstance(child, RouterTreeNode):
@@ -48,7 +50,7 @@ class RouterTreeNode(object):
         return output
     
     def Print(self):
-        if self.isRoot():
+        if self.isEmptyRoot():
             # don't print current node, but print all parts. 
             return self.PrintTree(-1, False)
         else:
@@ -67,7 +69,33 @@ class RouterTreeNode(object):
             if (searchdepth > 0) or (searchdepth <= -1):
                 output += child.ChildrenWith(searchstring, searchdepth-1)
         return output
+
+    def SearchDaisyChain(self, *searchstrings, **kwargs):
+        # Search depth sets the inital find depth.  After that all matches must be direct children of the first match. 
+        output = []
+        searchstrings = list(searchstrings)
+        if 'searchdepth' in kwargs:
+            searchdepth = kwargs['searchdepth']
+        else:
+            searchdepth = 0
+        currentstring = searchstrings.pop(0)
+        for child in self.ChildrenWith(currentstring, searchdepth):
+            if len(searchstrings) > 0:
+                output += child.SearchDaisyChain(*searchstrings)
+            else:
+                output.append(child)
+        return output
     
+    def SafeDeleteSelf(self):
+        if len(self.children) == 0:
+            self.parent.RemoveChild(self)
+
+    def HasChild(self, child):
+        if child in self.children:
+            return True
+        else:
+            return False
+
     def LastLine(self):
         if len(self.children) != 0:
             return self.children[-1].LastLine()
@@ -75,8 +103,16 @@ class RouterTreeNode(object):
             return self
 
     def isRoot(self):
-        if self.text == "Root Node":
+        if self.root or (self.parent == None):
             return True
+        else:
+            return False
+
+    def isEmptyRoot(self):
+        if (self.root or (self.parent == None)) and (self.text == ''):
+            return True
+        else:
+            return False
 
     def GetAllChildren(self):
         return self.children
@@ -93,16 +129,32 @@ class RouterTreeNode(object):
 
     def __sub__(self, target):
         if isinstance(target, RouterTreeNode):
-            if target.isRoot():
-                for child in target.GetAllChildren():
-                    self.RemoveChild(child)
-            else:
+            if self.HasChild(target):
                 self.RemoveChild(target)
+            else:
+                targetliniage = target.BuildLiniage()
+                for successor in targetliniage:
+                    for result in self.SearchDaisyChain(*successor):
+                        result.SafeDeleteSelf()
         elif isinstance(target, str):
             self.RemoveChild(target)
         
+    def BuildHaritage(self):
+        if self.isRoot() and self.isEmptyRoot():
+            output = []
+        elif self.isRoot() and not self.isEmptyRoot():
+            output = [self.text]
+        else:
+            output = self.parent.BuildHaritage()
+            output.append(self.text)
+        return output
 
-
+    def BuildLiniage(self):
+        output = []
+        for child in self.children:
+            output += child.BuildLiniage()
+        output += [self.BuildHaritage()]
+        return output
 
 
 if __name__=='__main__':
@@ -119,8 +171,10 @@ if __name__=='__main__':
     bgp.AppendChild('router-id 172.16.0.1')
     bgp.AppendChild('neighbor 192.168.0.2 remote-as 65001')
     bgp.AppendChild('address-family ipv4 unicast')
+    bgp.AppendChild('address-family ipv6 unicast')
     addrfam = bgp.ChildrenWith('family')[0]
     addrfam.AppendChild('neighbor 192.168.0.2 activate')
+    bgp.ChildrenWith('v6')[0].AppendChild('neighbor 192.168.0.3 activate')
     print(TestRouter.Print())
 
     print(TestRouter.ChildrenWith('activate', -1)[0].text)
@@ -139,4 +193,20 @@ if __name__=='__main__':
     print(TestRouter.Print())
 
 
+    for line in TestRouter.SearchDaisyChain('router bgp 6500', r'ipv', r'192.168.0.[1-3]'):
+        print(line)
+        print(TestRouter.SearchDaisyChain(*line.BuildHaritage()))
 
+    print(TestRouter.ChildrenWith('router-id'))
+    print(TestRouter.ChildrenWith('router-id', -1))
+    print(TestRouter.ChildrenWith('ipv6', -1)[0].BuildLiniage())
+
+    TestSub = RouterTreeNode('router bgp 6500')
+    TestSub.AppendChild('address-family ipv6 unicast')
+    TestSub.ChildrenWith('ipv6', -1)[0].AppendChild('neighbor 192.168.0.3 activate')
+
+    TestRouter - TestSub
+
+    print(TestSub.Print())
+
+    print(TestRouter.Print())
