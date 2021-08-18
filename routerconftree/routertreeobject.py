@@ -1,4 +1,5 @@
 import re
+import copy
 
 class RouterTreeNode(object):
     def __init__(self, text= None):
@@ -18,6 +19,7 @@ class RouterTreeNode(object):
             newchild = RouterTreeNode(child)
         self.children.append(newchild)
         newchild.SetParent(self)
+        return newchild
 
     def RemoveChild(self, child):
         if isinstance(child, RouterTreeNode):
@@ -69,6 +71,33 @@ class RouterTreeNode(object):
             if (searchdepth > 0) or (searchdepth <= -1):
                 output += child.ChildrenWith(searchstring, searchdepth-1)
         return output
+
+    def Inserttoparent(self, position, adoptchild):
+        if isinstance(adoptchild, RouterTreeNode):
+            newchild = copy.deepcopy(adoptchild)
+        else:
+            newchild = RouterTreeNode(adoptchild)
+        # I know this is silly.  Please fix and submit a PR
+        self.parent.children.insert( self.parent.children.index(self) + position, newchild ) 
+        newchild.SetParent(self.parent)
+
+    def Insert(self, searchstring, position, child ):
+        parents = self.ChildrenWith(searchstring, -1)
+        for parent in parents:
+            parent.Inserttoparent( position, child)
+
+    def InsertAfter(self, searchstring, child):
+        self.Insert(searchstring, 1, child)
+
+    def InsertBefore(self, searchstring, child):
+        self.Insert(searchstring, 0, child)
+
+    def Replace(self, searchstring, replacestring):
+        self.text = re.sub(searchstring, replacestring, self.text)
+
+    def ReplaceAll(self, searchstring, replacestring):
+        for each in self.ChildrenWith(searchstring, -1):
+            each.Replace(searchstring, replacestring)
 
     def SearchDaisyChain(self, *searchstrings, **kwargs):
         # Search depth sets the inital find depth.  After that all matches must be direct children of the first match. 
@@ -166,6 +195,10 @@ if __name__=='__main__':
         TestRouter.AppendChild(intobj)
 
     TestRouter.AppendChild(RouterTreeNode('router bgp 6500'))
+    TestRouter.InsertAfter('no switchport', 'shutdown')
+    TestRouter.InsertBefore('no switchport', 'description test port' )
+    for each in TestRouter.ChildrenWith('description', -1):
+        each.Replace('port', 'yeppers')
     #print(TestRouter.ChildrenWith(r'bgp'))
     bgp = TestRouter.ChildrenWith('bgp')[0]
     bgp.AppendChild('router-id 172.16.0.1')
@@ -196,6 +229,8 @@ if __name__=='__main__':
     for line in TestRouter.SearchDaisyChain('router bgp 6500', r'ipv', r'192.168.0.[1-3]'):
         print(line)
         print(TestRouter.SearchDaisyChain(*line.BuildHaritage()))
+
+    TestRouter.ReplaceAll('yeppers', 'interface config')
 
     print(TestRouter.ChildrenWith('router-id'))
     print(TestRouter.ChildrenWith('router-id', -1))
