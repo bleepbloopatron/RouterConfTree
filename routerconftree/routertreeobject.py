@@ -192,7 +192,7 @@ class RouterTreeNode(object):
 
     def SearchSelf(self, searchstring):
         # Basic do I have text function
-        if re.Search(searchstring, self.text):
+        if re.search(searchstring, self.text):
             return True
         else:
             return False
@@ -226,11 +226,13 @@ class RouterTreeNode(object):
         return output
 
     def SearchChildrenWith(self, *searchstrings, **kwargs):
-        # Returns a list of objects that are parents of the 2nd to last saerch string. 
+        # Returns a list of objects that start with the first search string, and contain all the sub strings
         output = []
         search = self.SearchDaisyChain(*searchstrings, **kwargs)
         for child in search:
-            output.append(child.GetParent())
+            for each in range(len(searchstrings) -1):
+                child = child.GetParent()
+            output.append(child)
         return output
     
 
@@ -297,5 +299,5 @@ if __name__=='__main__':
 
     print(TestRouter.Print())
 
-    for each in TestRouter.SearchChildrenWith('interface', 'shutdown'):
+    for each in TestRouter.SearchChildrenWith('bgp', 'ipv4', 'activate'):
         print(each.Print())
