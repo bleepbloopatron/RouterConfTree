@@ -74,19 +74,24 @@ class RouterTreeNode(object):
             parent.InserttoParent( position, child)
 
     def InsertAfter(self, searchstring, child):
+        # Wraps Insert with position set for after.
         self.Insert(searchstring, 1, child)
 
     def InsertBefore(self, searchstring, child):
+        # Wraps Insert with position set for before.
         self.Insert(searchstring, 0, child)
 
     def Replace(self, searchstring, replacestring):
+        # allows regex substitution. 
         self.text = re.sub(searchstring, replacestring, self.text)
 
     def ReplaceAll(self, searchstring, replacestring):
+        # use search to replace all instances in the tree via Replace. 
         for each in self.ChildrenWith(searchstring, -1):
             each.Replace(searchstring, replacestring)
 
     def SafeDeleteSelf(self):
+        # Only remove self if there are no children. 
         if len(self.children) == 0:
             self.parent.RemoveChild(self)
 
