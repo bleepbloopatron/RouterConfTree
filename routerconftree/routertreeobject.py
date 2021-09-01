@@ -240,7 +240,9 @@ class RouterTreeNode(object):
             output.append(child)
         return output
     
-
+    def SearchAndReplace(self, searchstring, replacestring):
+        for child in self.ChildrenWith(searchstring, -1):
+            child.Replace(searchstring, replacestring)
 
         
 
@@ -306,3 +308,7 @@ if __name__=='__main__':
 
     for each in TestRouter.SearchChildrenWith('bgp', 'ipv4', 'activate'):
         print(each.Print())
+
+    TestRouter.SearchAndReplace('ipv4', 'vpnv4')
+
+    print(TestRouter.Print())
