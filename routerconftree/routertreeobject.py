@@ -66,20 +66,24 @@ class RouterTreeNode(object):
         # I know this is silly.  Please fix and submit a PR
         self.parent.children.insert( self.parent.children.index(self) + position, newchild ) 
         newchild.SetParent(self.parent)
+        return newchild
 
     def Insert(self, searchstring, position, child ):
         # Wraps InserttoParent
+        output = []
         parents = self.ChildrenWith(searchstring, -1)
         for parent in parents:
-            parent.InserttoParent( position, child)
+            output.append(parent.InserttoParent( position, child))
+        return output
+        
 
     def InsertAfter(self, searchstring, child):
         # Wraps Insert with position set for after.
-        self.Insert(searchstring, 1, child)
+        return self.Insert(searchstring, 1, child)
 
     def InsertBefore(self, searchstring, child):
         # Wraps Insert with position set for before.
-        self.Insert(searchstring, 0, child)
+        return self.Insert(searchstring, 0, child)
 
     def Replace(self, searchstring, replacestring):
         # allows regex substitution. 
@@ -119,8 +123,11 @@ class RouterTreeNode(object):
         else:
             return False
 
-    def GetAllChildren(self):
+    def GetChildren(self):
         return self.children
+
+    def GetText(self):
+        return self.text
 
     def BuildHaritage(self):
         if self.isRoot() and self.isEmptyRoot():
@@ -239,6 +246,12 @@ class RouterTreeNode(object):
                 child = child.GetParent()
             output.append(child)
         return output
+
+
+    # TODO
+    # Search and replace
+    # search and delete 
+    
     
 
 
