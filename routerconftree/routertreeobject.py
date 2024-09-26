@@ -3,7 +3,7 @@ import copy
 from typing import List
 
 class RouterTreeNode(object):
-    def __init__(self, text= None):
+    def __init__(self, text= None) -> None:
         self.children = []
         self.parent = None
         if text == None:
@@ -22,7 +22,7 @@ class RouterTreeNode(object):
     #                                           |_|            |___/ 
 
 
-    def AppendChild(self, child) -> 'RouterTreeNode':
+    def AppendChild(self, child: 'RouterTreeNode' or str) -> 'RouterTreeNode':
         # Adds child
         if isinstance(child, RouterTreeNode):
             newchild = child
@@ -32,7 +32,7 @@ class RouterTreeNode(object):
         newchild.SetParent(self)
         return newchild
 
-    def RemoveChild(self, child) -> None:
+    def RemoveChild(self, child: 'RouterTreeNode' or str) -> None:
         # Removes child
         if isinstance(child, RouterTreeNode):
             if child in self.children:
@@ -58,7 +58,7 @@ class RouterTreeNode(object):
         # Set Parent
         self.parent = parent
 
-    def InserttoParent(self, position, adoptchild) -> 'RouterTreeNode':
+    def InserttoParent(self, position: int, adoptchild: 'RouterTreeNode' or str) -> 'RouterTreeNode':
         # Inserts to parent used by other functions
         if isinstance(adoptchild, RouterTreeNode):
             newchild = copy.deepcopy(adoptchild)
@@ -69,7 +69,7 @@ class RouterTreeNode(object):
         newchild.SetParent(self.parent)
         return newchild
 
-    def Insert(self, searchstring, position, child ) -> List['RouterTreeNode']:
+    def Insert(self, searchstring: str, position: int, child: 'RouterTreeNode' or str ) -> List['RouterTreeNode']:
         # Wraps InserttoParent
         output = []
         parents = self.ChildrenWith(searchstring, -1)
@@ -78,19 +78,19 @@ class RouterTreeNode(object):
         return output
         
 
-    def InsertAfter(self, searchstring, child) -> List['RouterTreeNode']:
+    def InsertAfter(self, searchstring: str, child: 'RouterTreeNode' or str) -> List['RouterTreeNode']:
         # Wraps Insert with position set for after.
         return self.Insert(searchstring, 1, child)
 
-    def InsertBefore(self, searchstring, child) -> List['RouterTreeNode']:
+    def InsertBefore(self, searchstring: str, child: 'RouterTreeNode' or str) -> List['RouterTreeNode']:
         # Wraps Insert with position set for before.
         return self.Insert(searchstring, 0, child)
 
-    def Replace(self, searchstring, replacestring) -> None:
+    def Replace(self, searchstring: str, replacestring: str) -> None:
         # allows regex substitution. 
         self.text = re.sub(searchstring, replacestring, self.text)
 
-    def ReplaceAll(self, searchstring, replacestring) -> None:
+    def ReplaceAll(self, searchstring: str, replacestring: str) -> None:
         # use search to replace all instances in the tree via Replace. 
         for each in self.ChildrenWith(searchstring, -1):
             each.Replace(searchstring, replacestring)
@@ -103,7 +103,7 @@ class RouterTreeNode(object):
     def UnsafeDeleteSelf(self) -> None:
         self.parent.RemoveChild(self)
 
-    def HasChild(self, child) -> bool:
+    def HasChild(self, child: 'RouterTreeNode') -> bool:
         if child in self.children:
             return True
         else:
@@ -150,7 +150,7 @@ class RouterTreeNode(object):
         output += [self.BuildHaritage()]
         return output
 
-    def __add__(self, target) -> None:
+    def __add__(self, target: 'RouterTreeNode' or str) -> None:
         if isinstance(target, RouterTreeNode):
             if target.isRoot():
                 for child in target.GetChildren():
@@ -160,7 +160,7 @@ class RouterTreeNode(object):
         elif isinstance(target, str):
             self.AppendChild(target)
 
-    def __sub__(self, target) -> None:
+    def __sub__(self, target: 'RouterTreeNode' or str) -> None:
         if isinstance(target, RouterTreeNode):
             if self.HasChild(target):
                 self.RemoveChild(target)
@@ -181,7 +181,7 @@ class RouterTreeNode(object):
     #                  | |                                                           
     #                  |_|                                                          
 
-    def PrintTree(self, indent = 0, printself = True) -> str:
+    def PrintTree(self, indent: int = 0, printself: bool = True) -> str:
         output = ''
         if printself:
             output += "{}{}\n".format( ' ' * indent, self.text)
@@ -208,14 +208,14 @@ class RouterTreeNode(object):
     #                                                                                     __/ |
     #                                                                                    |___/ 
 
-    def SearchSelf(self, searchstring) -> bool:
+    def SearchSelf(self, searchstring: str) -> bool:
         # Basic do I have text function
         if re.search(searchstring, self.text):
             return True
         else:
             return False
         
-    def ChildrenWith(self, searchstring, searchdepth = 0) -> List['RouterTreeNode']:
+    def ChildrenWith(self, searchstring: str, searchdepth: int = 0) -> List['RouterTreeNode']:
         # returns a list of children that contain a search string, and will search further down the tree.
         # Used by other functions
         output = []
@@ -226,7 +226,7 @@ class RouterTreeNode(object):
                 output += child.ChildrenWith(searchstring, searchdepth-1)
         return output
 
-    def SearchDaisyChain(self, *searchstrings, **kwargs) -> List['RouterTreeNode']:
+    def SearchDaisyChain(self, *searchstrings: str, **kwargs: int) -> List['RouterTreeNode']:
         # Search depth sets the inital find depth.  After that all matches must be direct children of the first match. 
         # returns a list of only objects that match all search strings. 
         output = []
@@ -243,7 +243,7 @@ class RouterTreeNode(object):
                 output.append(child)
         return output
 
-    def SearchChildrenWith(self, *searchstrings, **kwargs) -> List['RouterTreeNode']:
+    def SearchChildrenWith(self, *searchstrings: str, **kwargs: int) -> List['RouterTreeNode']:
         # Returns a list of objects that start with the first search string, and contain all the sub strings
         output = []
         search = self.SearchDaisyChain(*searchstrings, **kwargs)
@@ -253,11 +253,11 @@ class RouterTreeNode(object):
             output.append(child)
         return output
     
-    def SearchAndReplace(self, searchstring, replacestring) -> None:
+    def SearchAndReplace(self, searchstring: str, replacestring: str) -> None:
         for child in self.ChildrenWith(searchstring, -1):
             child.Replace(searchstring, replacestring)
 
-    def SearchAndDelete(self, searchstring, safe = True) -> None:
+    def SearchAndDelete(self, searchstring: str, safe = True) -> None:
         for child in self.ChildrenWith(searchstring, -1):
             if safe:
                 child.SafeDeleteSelf()

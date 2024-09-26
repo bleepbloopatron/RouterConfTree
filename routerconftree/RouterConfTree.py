@@ -1,13 +1,14 @@
 import routertreeobject
 import difflib
+from typing import List
 
-def openfile(filename):
+def openfile(filename: str) -> List[str]:
     with open(filename) as f:
         lines = f.read().splitlines()
     return lines
 
 
-def NewConfTree(data):
+def NewConfTree(data: str or List) -> routertreeobject.RouterTreeNode:
     if isinstance(data, list):
         #use list
         confdata = data
